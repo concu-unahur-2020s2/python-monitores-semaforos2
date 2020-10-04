@@ -2,107 +2,143 @@ import random
 import threading
 import time
 
-mesa = []
+papelEnMesa = []
+fosforosEnMesa = []
+tabacoEnMesa = []
+
+###################
+### Agentes
+###################
 
 def agentePapel():
-    global mesa
+    global papelEnMesa, fosforosEnMesa, tabacoEnMesa
     while True:
         semaforoAgente.acquire()
-        mesa.append("P")
+        semaforoLista.acquire()
+
+        papelEnMesa.append(1)
         print("Coloco Papel")
         time.sleep(1)
-        if len(mesa) == 2:
-            despetarFumador()
+        if len(fosforosEnMesa) + len(tabacoEnMesa) + len(papelEnMesa) == 2:
+            despertarFumadores()
+        
+        semaforoLista.release()
 
 def agenteTabaco():
-    global mesa
+    global papelEnMesa, fosforosEnMesa, tabacoEnMesa
     while True:
         semaforoAgente.acquire()
-        mesa.append("T")
+        semaforoLista.acquire()
+
+        tabacoEnMesa.append(1)
         print("Coloco Tabaco")
         time.sleep(1)
-        if len(mesa) == 2:
-            despetarFumador()
+        if len(fosforosEnMesa) + len(tabacoEnMesa) + len(papelEnMesa) == 2:
+            despertarFumadores()
+        
+        semaforoLista.release()
 
 def agenteFosforos():
-    global mesa
+    global papelEnMesa, fosforosEnMesa, tabacoEnMesa
     while True:
         semaforoAgente.acquire()
-        mesa.append("F")
+        semaforoLista.acquire()
+
+        fosforosEnMesa.append(1)
         print("Coloco Fosforos")
         time.sleep(1)
-        if len(mesa) == 2:
-            despetarFumador()
+        if len(fosforosEnMesa) + len(tabacoEnMesa) + len(papelEnMesa) == 2:
+            despertarFumadores()
 
-def despetarFumador():
-    global mesa
+        semaforoLista.release()
 
-    ingrediente1 = mesa[0]
-    ingrediente2 = mesa[1]
+#####################
+### Despertador
+#####################
 
-    if ingrediente1.upper() == "F" and ingrediente2.upper() == "T":
+def despertarFumadores():
+    if len(fosforosEnMesa) >= 1 and len(tabacoEnMesa) >= 1:
         semaforoFumadorConPapel.release()
-    elif ingrediente1.upper() == "P" and ingrediente2.upper() == "T":
+    elif len(papelEnMesa) >= 1 and len(tabacoEnMesa) >= 1:
         semaforoFumadorConFosforos.release()
-    elif ingrediente1.upper() == "P" and ingrediente2.upper() == "F":
+    elif len(papelEnMesa) >= 1 and len(fosforosEnMesa) >= 1:
         semaforoFumadorConTabaco.release()
 
 
+#####################
+### Fumadores
+#####################
+
 def fumadorConPapel():
-    global mesa
+    global papelEnMesa, fosforosEnMesa, tabacoEnMesa
     while True:
-        with semaforoFumadorConPapel:
-            mesa.pop(0)
-            mesa.pop(0)
-            print("\nFumador con papel esta fumando 🚬\n")
-            time.sleep(2)
-            semaforoAgente.release()
-            semaforoAgente.release()
+        semaforoFumadorConPapel.acquire()
+        semaforoLista.acquire()
+        fosforosEnMesa.pop(0)
+        tabacoEnMesa.pop(0)
+        print("\nFumador con papel esta fumando 🚬\n")
+        time.sleep(2)
+        semaforoLista.release()
+        semaforoAgente.release()
+        semaforoAgente.release()
 
 
 def fumadorConFosforos():
-    global mesa
+    global papelEnMesa, fosforosEnMesa, tabacoEnMesa
     while True:
-        with semaforoFumadorConFosforos:
-            mesa.pop(0)
-            mesa.pop(0)
-            print("\nFumador con fosforos esta fumando 🚬\n")
-            time.sleep(2)
-            semaforoAgente.release()
-            semaforoAgente.release()
+        semaforoFumadorConFosforos.acquire()
+        semaforoLista.acquire()
+        papelEnMesa.pop(0)
+        tabacoEnMesa.pop(0)
+        print("\nFumador con fosforos esta fumando 🚬\n")
+        time.sleep(2)
+        semaforoLista.release()
+        semaforoAgente.release()
+        semaforoAgente.release()
 
 
 def fumadorConTabaco():
-    global mesa
+    global papelEnMesa, fosforosEnMesa, tabacoEnMesa
     while True:
-        with semaforoFumadorConTabaco:
-            mesa.pop(0)
-            mesa.pop(0)
-            print("\nFumador con tabaco esta fumando 🚬\n")
-            time.sleep(2)
-            semaforoAgente.release()
-            semaforoAgente.release()
+        semaforoFumadorConTabaco.acquire()
+        semaforoLista.acquire()
+        papelEnMesa.pop(0)
+        fosforosEnMesa.pop(0)
+        print("\nFumador con tabaco esta fumando 🚬\n")
+        time.sleep(2)
+        semaforoLista.release()
+        semaforoAgente.release()
+        semaforoAgente.release()
 
-
-
-semaforoAgente = threading.Semaphore(2)
-semaforoFumadorConPapel = threading.Semaphore(0)
-semaforoFumadorConFosforos = threading.Semaphore(0)
-semaforoFumadorConTabaco = threading.Semaphore(0)
+#################
+### Threads
+#################
 
 agentePapel = threading.Thread(target=agentePapel)
 agenteTabaco = threading.Thread(target=agenteTabaco)
 agenteFosforos = threading.Thread(target=agenteFosforos)
-
 fumadorConPapelHilo = threading.Thread(target=fumadorConPapel)
 fumadorConFosforosHilo = threading.Thread(target=fumadorConFosforos)
 fumadorConTabacoHilo = threading.Thread(target=fumadorConTabaco)
 
 
+###################
+### Semaforos
+###################
+
+semaforoAgente = threading.Semaphore(2)
+semaforoLista = threading.Semaphore(1)
+semaforoFumadorConPapel = threading.Semaphore(0)
+semaforoFumadorConFosforos = threading.Semaphore(0)
+semaforoFumadorConTabaco = threading.Semaphore(0)
+
+##################
+### Starts
+##################
+
 agentePapel.start()
 agenteTabaco.start()
 agenteFosforos.start()
-
 fumadorConPapelHilo.start()
 fumadorConFosforosHilo.start()
 fumadorConTabacoHilo.start()
