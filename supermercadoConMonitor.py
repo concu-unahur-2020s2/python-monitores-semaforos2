@@ -33,7 +33,7 @@ class Cliente(threading.Thread):
                 monitorCajero.notify()
     
     def puedoEntrar(self):
-        return len(clientesEnCaja) < cantidadMaxClientes
+        return len(clientesEnSuper) < cantidadMaxClientes
 
     def soyPrimero(self): 
         return clientesEnCaja.index(self) == 0
@@ -70,5 +70,5 @@ class Cajero(threading.Thread):
 
 Cajero().start()
 
-for i in range(cantidadMaxClientes):
+for i in range(5):
     Cliente(i).start()
