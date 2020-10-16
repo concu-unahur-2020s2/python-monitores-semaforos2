@@ -28,13 +28,16 @@ class Cliente(threading.Thread):
         self.despertarCajero()
     
     def despertarCajero(self):
-        if(clientesEnCaja.index(self) == 0):
+        if(self.soyPrimero()):
             with monitorCajero:
                 logging.info('Despierto al cajero')
                 monitorCajero.notify()
     
     def puedoEntrar(self):
         return len(clientesEnCaja) < cantidadMaxClientes
+
+    def soyPrimero(self): 
+        return clientesEnCaja.index(self) == 0
         
     def run(self):
         if(self.puedoEntrar()):
