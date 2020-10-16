@@ -9,7 +9,6 @@ cantidadMaxClientes = 3
 clientesEnSuper = []
 clientesEnCaja = []
 semaforoCajero = threading.Semaphore(0)
-semaforoCliente = threading.Semaphore(0)
 
 class Cliente(threading.Thread):
     def __init__(self, numero):
@@ -33,12 +32,11 @@ class Cliente(threading.Thread):
             semaforoCajero.release()
     
     def puedoEntrar(self):
-        return len(clientesEnCaja) < cantidadMaxClientes
+        return len(clientesEnSuper) < cantidadMaxClientes
         
     def run(self):
         if(self.puedoEntrar()):
             self.entrarAlSuper()
-            semaforoCliente.acquire()
             clientesEnSuper.pop(0)
             logging.info('Terminé de comprar')
         else:
@@ -58,7 +56,6 @@ class Cajero(threading.Thread):
             clientesEnCaja.pop(0)
             time.sleep(2)
             logging.info('Atendí un cliente')
-            semaforoCliente.release()
 
     def noHayNadieParaAtender(self):
         return len(clientesEnCaja) == 0
@@ -69,5 +66,5 @@ class Cajero(threading.Thread):
 
 Cajero().start()
 
-for i in range(cantidadMaxClientes):
+for i in range(5):
     Cliente(i).start()
