@@ -9,6 +9,9 @@ cantidadMaximaDeClientes = 4
 
 monitorCaja = threading.Condition()
 
+def tiempoEspera(maximo):
+    time.sleep(random.randrange(1,maximo))
+
 
 class Cliente(threading.Thread):
     def __init__(self,nro):
@@ -20,18 +23,19 @@ class Cliente(threading.Thread):
             if(len(listaSupermercado) < cantidadMaximaDeClientes):
                 print("cliente", self.nro, "- Todavia hay lugar, voy a entrar")
                 listaSupermercado.append(self)
-                time.sleep(2)
+                tiempoEspera(10)
                 self.voyALaCaja()
             else:    
                 print("cliente",self.nro, "- Mi plata no vale? Me vuelvo a mi casa")
                 exit()
 
     def voyALaCaja(self):
+            listaCaja.append(self)
             with monitorCaja:
-                listaCaja.append(self)
-                monitorCaja.notify()
+                if (len(listaCaja) > 1):
+                    monitorCaja.notify()
                 print("cliente", self.nro, "- Elijo mis productos y me voy a la caja")
-                time.sleep(10)    
+                tiempoEspera(10)    
 
     def run(self):
         self.entroAlSuper()
@@ -47,10 +51,10 @@ class Caja(threading.Thread):
             with monitorCaja:
                 while(len(listaCaja) < 1):
                     monitorCaja.wait()
-                    c = listaCaja.pop(0)
-                    print("Despacho al cliente", c)
-                    listaSupermercado.pop(0)
-                    time.sleep(2)    
+                c = listaCaja.pop(0)
+                print("Despacho al cliente", c)
+                listaSupermercado.pop(0)
+                tiempoEspera(10)   
 
 
 

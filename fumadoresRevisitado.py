@@ -1,6 +1,9 @@
 import random
 import threading
 import time
+import logging
+
+logging.basicConfig(format='%(asctime)s.%(msecs)03d [%(threadName)s] - %(message)s', datefmt='%H:%M:%S', level=logging.INFO)
 
 listaPapel = []
 listaTabaco = []
@@ -28,17 +31,17 @@ def mesa():
 
 
 class Agente(threading.Thread):
-    def __init__(self,lista,semaforo,nro):
+    def __init__(self,lista,semaforo,name):
         super().__init__()
         self.lista = lista
         self.semaforo = semaforo
-        self.nro = nro
+        self.name = name
 
     def run(self):
         while True:
             self.semaforo.acquire()
             self.lista.append(1)
-            print("agente",self.nro, "cantidad", len(self.lista))
+            print("agente",self.name, "cantidad", len(self.lista))
             time.sleep(2)
 
 
@@ -48,7 +51,7 @@ def fumadorConPapel():
             monitorFumadorConPapel.wait()
             listaFosforo.pop(0)  
             listaTabaco.pop(0)
-            print("fumador1 con papel - tengo fosforo y tabaco en la mesa - voy a fumar")
+            logging.info("fumador1 con papel - tengo fosforo y tabaco en la mesa - voy a fumar")
             time.sleep(2)
             semaforoAgente.release()
             semaforoAgente.release()
@@ -60,7 +63,7 @@ def fumadorConFosforos():
             monitorFumadorConFosforos.wait() 
             listaTabaco.pop(0)
             listaPapel.pop(0)
-            print("fumador2 con fosforo - tengo tabaco y papel en la mesa - voy a fumar")
+            logging.info("fumador2 con fosforo - tengo tabaco y papel en la mesa - voy a fumar")
             time.sleep(2)
             semaforoAgente.release()
             semaforoAgente.release()
@@ -72,7 +75,7 @@ def fumadorConTabaco():
             monitorFumadorConTabaco.wait()  
             listaPapel.pop(0)
             listaFosforo.pop(0) 
-            print("fumador3 con tabaco - tengo papel y fosforo en la mesa - voy a fumar")
+            logging.info("fumador3 con tabaco - tengo papel y fosforo en la mesa - voy a fumar")
             time.sleep(2)
             semaforoAgente.release()
             semaforoAgente.release()
@@ -84,9 +87,9 @@ def fumadorConTabaco():
 
 mesaHilo = threading.Thread(target=mesa)
 
-agente1 = Agente(listaFosforo,semaforoAgente,1)
-agente2 = Agente(listaPapel,semaforoAgente,2)
-agente3 = Agente(listaTabaco,semaforoAgente,3)
+agente1 = Agente(listaFosforo,semaforoAgente,name='Agente de fosforos')
+agente2 = Agente(listaPapel,semaforoAgente,name = 'Agente de Papel')
+agente3 = Agente(listaTabaco,semaforoAgente,name = 'Agente de tabaco')
 
 
 
